@@ -1,17 +1,11 @@
-import rpyc
 import curses
+from setup_brick import servo
 
-def rotate_servo(s, a):
-    """Rotate servo drive by small angle a"""
-    # s.wait_while('running')
-    s.run_to_rel_pos(position_sp=a)
 
 if __name__ == '__main__':
-    conn = rpyc.classic.connect('10.42.0.3')
-    ev3 = conn.modules['ev3dev.ev3']
-    servo = ev3.MediumMotor('outB')
 
-    sp = 2
+    sp = 2 # rotation step
+
     # get the curses screen window
     screen = curses.initscr()
      
@@ -23,7 +17,7 @@ if __name__ == '__main__':
      
     # map arrow keys to special values
     screen.keypad(True)
-    cur_pos = 'current position ---> '
+    cur_pos = '  =============  '
     help_str = '\
 | q - quit                         |\n\
 | s - set current position as zero |\n\
@@ -34,19 +28,19 @@ if __name__ == '__main__':
         while True:
             screen.clear()
             screen.addstr(0, 0, help_str)
-            screen.addstr(4, 0, cur_pos + str(servo.position))       
+            screen.addstr(4, 0, cur_pos + str(servo.position) + cur_pos)
 
             char = screen.getch()
             if char == ord('q'):
                 break
             elif char == curses.KEY_RIGHT:
-                rotate_servo(servo, sp)
+                servo.run_to_rel_pos(position_sp=sp)
             elif char == curses.KEY_LEFT:
-                rotate_servo(servo, -sp)
+                servo.run_to_rel_pos(position_sp=-sp)
             elif char == ord('s'):
                 servo.position = 0
             elif char == ord('h'):
-                servo.run_to_abs_pos(position_sp=0, speed_sp=50)
+                servo.run_to_abs_pos(position_sp=0, speed_sp=150)
                 servo.wait_while('running')
     finally:
         # shut down cleanly

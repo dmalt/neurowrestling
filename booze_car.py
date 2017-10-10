@@ -16,9 +16,6 @@ from numpy import sign
 
 LSL_TIMEPROP = 5
 
-conn = rpyc.classic.connect('10.42.0.3') # host name or IP address of the EV3
-
-ev3 = conn.modules['ev3dev.ev3']      # import ev3dev.ev3 remotely
 # ev3.Sound.speak('Sasha privet').wait()
 
 def rotate_90(l, r, speed):
@@ -61,20 +58,13 @@ class CustomException(Exception):
 
 
 if __name__ == '__main__':
+    from setup_brick import servo
+    from game_params import pl1, pl2, win_len, thresh, amp
     # ---------- init servo motor ---------------- #
-    servo = ev3.MediumMotor('outB')
     servo.run_to_abs_pos(position_sp=0, speed_sp=50)
     # servo.position_sp = 0
     # servo.reset()
     # -------------------------------------------- #
-
-    win_len = 50;
-
-    pl1 = 'sosna'
-    pl2 = 'lipa'
-
-    # pl1 = 'bad'
-    # pl2 = 'bad1'
 
     pl1_l_code = 1.;
     pl1_r_code = 2.;
@@ -82,11 +72,8 @@ if __name__ == '__main__':
     pl2_l_code = 2.;
     pl2_r_code = 1.;
 
-
     pl1_deque = deque(maxlen=win_len)
     pl2_deque = deque(maxlen=win_len)
-
-    threshold = 0.2
 
     # -------------------- connect to streams ------------------- #
     stream_pl1 = resolve_byprop('name', pl1, timeout=LSL_TIMEPROP)
@@ -101,7 +88,6 @@ if __name__ == '__main__':
     pl1_inlet = StreamInlet(stream_pl1[0])
     pl2_inlet = StreamInlet(stream_pl2[0])
 
-    amplitude = 600
 
     while(True):
         pl1_chunk = pl1_inlet.pull_chunk()[0]
@@ -131,7 +117,7 @@ if __name__ == '__main__':
 
             delta = rights - lefts
 
-            if abs(delta) / win_len > threshold:
+            if abs(delta) / win_len > thresh:
                 speed = (50 + 50 * abs(delta) / win_len) * sign(delta)
                 print('speed = {}'.format(speed))
             else:
@@ -140,7 +126,7 @@ if __name__ == '__main__':
 
         print('position = {}'.format(servo.position))
 
-        if abs(servo.position) > amplitude:
+        if abs(servo.position) > amp:
             servo.stop()
             sleep(3)
             servo.run_to_abs_pos(position_sp=0, speed_sp=300)
