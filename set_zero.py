@@ -42,6 +42,12 @@ if __name__ == '__main__':
             elif char == ord('h'):
                 servo.run_to_abs_pos(position_sp=0, speed_sp=150)
                 servo.wait_while('running')
+            elif char == ord('k'):
+                servo.run_to_rel_pos(position_sp=sp * 20, speed_sp=150)
+                servo.wait_while('running')
+            elif char == ord('j'):
+                servo.run_to_rel_pos(position_sp= - sp * 20, speed_sp=150)
+                servo.wait_while('running')
     finally:
         # shut down cleanly
         curses.nocbreak(); screen.keypad(0); curses.echo()
